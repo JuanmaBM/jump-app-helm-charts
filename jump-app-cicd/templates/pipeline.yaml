@@ -34,14 +34,14 @@ spec:
       workspaces:
         - name: output
           workspace: app-source
-    - name: app-test
-      runAfter:
-        - app-git-clone
-      taskRef:
-        name: task-{{ $val.type }}-new-commit-test
-      workspaces:
-        - name: source
-          workspace: app-source
+    # - name: app-test
+    #   runAfter:
+    #     - app-git-clone
+    #   taskRef:
+    #     name: task-{{ $val.type }}-new-commit-test
+    #   workspaces:
+    #     - name: source
+    #       workspace: app-source
     - name: app-build-dev
       when:
         - input: $(params.git-branch)
@@ -51,7 +51,7 @@ spec:
       taskRef:
         name: task-new-commit-start-build-tag
       runAfter:
-        - app-test
+        - app-git-clone
       params:
         - name: buildconfig
           value: '{{ $key }}-dev'
@@ -132,7 +132,7 @@ spec:
       taskRef:
         name: task-new-commit-start-build-tag
       runAfter:
-        - app-test
+        - app-git-clone
       params:
         - name: buildconfig
           value: '{{ $key }}-pre'
@@ -146,6 +146,11 @@ spec:
         name: task-new-commit-image-tag
       runAfter:
         - app-build-pre
+      when:
+        - input: $(params.git-branch)
+          operator: in
+          values:
+            - "refs/heads/{{ $.Values.gitBranchPro }}"
       params:
         - name: imagestream
           value: '{{ $key }}'    
@@ -202,6 +207,11 @@ spec:
     - name: test-app-git-clone
       runAfter:
         - app-image-deployment-test-pre
+      when:
+        - input: $(params.git-branch)
+          operator: in
+          values:
+            - "refs/heads/{{ $.Values.gitBranchPro }}"
       taskRef:
         kind: ClusterTask
         name: git-clone
